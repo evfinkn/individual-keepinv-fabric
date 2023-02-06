@@ -15,6 +15,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
+			"dev.evanfinken.individualkeepinv.IndividualKeepInv"
 		]
 	},
 	"mixins": [
