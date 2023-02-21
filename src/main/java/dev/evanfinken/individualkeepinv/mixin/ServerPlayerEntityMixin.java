@@ -20,6 +20,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         super(world, pos, yaw, gameProfile, publicKey);
     }
 
+    /**
+     * Intercepts the call in {@link ServerPlayerEntity#copyFrom} to get the "keepInventory"
+     * gamerule.
+     */
     @Redirect(method = "copyFrom", at = @At(value = "INVOKE",
             target = "net/minecraft/world/GameRules.getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
     public boolean onCopyFrom(GameRules rules, GameRules.Key<GameRules.BooleanRule> key) {

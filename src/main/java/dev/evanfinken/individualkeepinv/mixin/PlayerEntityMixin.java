@@ -21,12 +21,19 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         super(entityType, world);
     }
 
+    /**
+     * Intercepts the call in {@link PlayerEntity#dropInventory} to get the "keepInventory"
+     * gamerule.
+     */
     @Redirect(method = "dropInventory", at = @At(value = "INVOKE",
             target = "net/minecraft/world/GameRules.getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
     public boolean onDropInventory(GameRules rules, GameRules.Key<GameRules.BooleanRule> key) {
         return IndividualKeepInv.interceptGetKeepInventory(getGameProfile(), rules, key);
     }
 
+    /**
+     * Intercepts the call in {@link PlayerEntity#getXpToDrop} to get the "keepInventory" gamerule.
+     */
     @Redirect(method = "getXpToDrop", at = @At(value = "INVOKE",
             target = "net/minecraft/world/GameRules.getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
     public boolean onGetXpToDrop(GameRules rules, GameRules.Key<GameRules.BooleanRule> key) {

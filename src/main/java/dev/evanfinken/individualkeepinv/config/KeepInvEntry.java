@@ -18,7 +18,8 @@ public class KeepInvEntry {
      * <p>
      * This preference indicates if the user wants to keep their inventory when they die. The
      * <code>Optional</code> holds <code>true</code> if they do, <code>false</code> if they don't,
-     * and is empty if they want to follow whatever the `keepInventory` gamerule is (the default).
+     * and is empty if they want to follow whatever the <code>keepInventory</code> gamerule is (the
+     * default).
      */
     private Optional<Boolean> keepInventory;
 
@@ -38,15 +39,34 @@ public class KeepInvEntry {
         this.keepInventory = keepInventory;
     }
 
-    /** Returns the `GameProfile` of the player this entry is for. */
+    /** Returns the <code>GameProfile</code> of the player this entry is for. */
     public GameProfile getProfile() {
         return profile;
     }
 
+    /**
+     * Gets the keep inventory preference of the player.
+     * <p>
+     * The preference indicates if the user wants to keep their inventory when they die. The
+     * <code>Optional</code> should hold <code>true</code> if they do, <code>false</code> if they
+     * don't, and be empty if they want to follow whatever the <code>keepInventory</code> gamerule
+     * is (the default).
+     * 
+     * @return The keep inventory preference of the player.
+     */
     public Optional<Boolean> shouldKeepInventory() {
         return keepInventory;
     }
 
+    /**
+     * Sets the keep inventory preference of the player.
+     * <p>
+     * The <code>Optional</code> holds <code>true</code> if they do, <code>false</code> if they
+     * don't, and is empty if they want to follow whatever the <code>keepInventory</code> gamerule
+     * is (the default).
+     * 
+     * @param keepInventory - The player's new preference.
+     */
     public void setKeepInventory(Optional<Boolean> keepInventory) {
         this.keepInventory = keepInventory;
     }

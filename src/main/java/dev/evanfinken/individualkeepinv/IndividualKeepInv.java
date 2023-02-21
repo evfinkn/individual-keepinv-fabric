@@ -16,6 +16,7 @@ public class IndividualKeepInv implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("individual-keepinv");
 	public static final Config CONFIG = new Config();
 
+	/** Initializes the mod, loading the config and registering the command. */
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Initializing Individual KeepInv");
@@ -31,6 +32,19 @@ public class IndividualKeepInv implements ModInitializer {
 				(dispatcher, registryAccess, environment) -> KeepInvCommand.register(dispatcher));
 	}
 
+	/**
+	 * Intercepts requests for the "keepInventory" gamerule, returning the player's preference, or
+	 * otherwise the requested gamerule.
+	 * 
+	 * @param profile The profile of the player to get the entry for.
+	 * @param rules The world's gamerules.
+	 * @param key The gamerule being asked for.
+	 * @return If the gamerule being asked for is "keepInventory", returns whether a player should
+	 *         keep their inventory when they die. If the keep inventory preference of the player is
+	 *         non-<code>null</code>, their preference is returned. Otherwise, if their preference
+	 *         is <code>null</code> the "keepInventory" gamerule is returned. If the gamerule being
+	 *         asked for is any other gamerule, that gamerule is returned.
+	 */
 	public static boolean interceptGetKeepInventory(GameProfile profile, GameRules rules,
 			GameRules.Key<GameRules.BooleanRule> key) {
 		if (key.getName().equals("keepInventory") && CONFIG.isEnabled()) {
