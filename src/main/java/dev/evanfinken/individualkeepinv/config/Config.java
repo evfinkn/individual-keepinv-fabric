@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.util.JsonHelper;
@@ -143,8 +142,7 @@ public class Config {
      */
     public void save() throws IOException {
         var configJson = new JsonObject();
-        var players = new JsonArray();
-        keepInvList.values().stream().map(entry -> entry.toJsonObject()).forEach(players::add);
+        var players = keepInvList.toJsonArray();
         configJson.addProperty("enabled", enabled);
         configJson.addProperty("userPermissionLevel", userPermissionLevel);
         configJson.addProperty("opPermissionLevel", opPermissionLevel);

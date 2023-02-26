@@ -1,36 +1,24 @@
 package dev.evanfinken.individualkeepinv.config;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 
 // I wanted to extend ServerConfigList but couldn't easily extend ServerConfigEntry for KeepInvEntry
 public class KeepInvList {
+    public static final Logger LOGGER = LoggerFactory.getLogger("individual-keepinv");
     /** A map of <code>GameProfile</code>s to the <code>KeepInvEntry</code> for that player. */
-    private final Map<String, KeepInvEntry> map = new HashMap<>();
+    private final Map<GameProfile, Optional<Boolean>> map = new HashMap<>();
 
     public KeepInvList() {}
-
-    /** Adds an entry to this list. */
-    public void add(KeepInvEntry entry) {
-        map.put(entry.getProfile().toString(), entry);
-    }
-
-    /** Returns whether this list has an entry for <code>profile</code>. */
-    public boolean contains(GameProfile profile) {
-        return map.containsKey(profile.toString());
-    }
-
-    /** Gets the entry for <code>profile</code>, or <code>null</code> if there's no entry. */
-    @Nullable
-    public KeepInvEntry get(GameProfile profile) {
-        return map.get(profile.toString());
-    }
 
     /**
      * Gets the keep inventory preference of the player specified by <code>profile</code>.
@@ -43,10 +31,10 @@ public class KeepInvList {
      * @return The keep inventory preference of the player.
      */
     public Optional<Boolean> shouldKeepInventory(GameProfile profile) {
-        if (!contains(profile)) {
+        if (!map.containsKey(profile)) {
             return Optional.empty();
         }
-        return get(profile).shouldKeepInventory();
+        return map.get(profile);
     }
 
     /**
@@ -63,40 +51,85 @@ public class KeepInvList {
      * @param keepInventory The player's new preference.
      */
     public void setKeepInventory(GameProfile profile, Optional<Boolean> keepInventory) {
-        if (contains(profile)) {
-            get(profile).setKeepInventory(keepInventory);
-        } else {
-            add(new KeepInvEntry(profile, keepInventory));
-        }
+        map.put(profile, keepInventory);
     }
 
     /** Removes the entry entry for the specified profile. */
     public void remove(GameProfile profile) {
-        map.remove(profile.toString());
+        map.remove(profile);
     }
 
-    /** Returns the entries of this list. */
-    public Collection<KeepInvEntry> values() {
-        return map.values();
+    public JsonArray toJsonArray() {
+        var jsonArray = new JsonArray();
+        for (var entry : map.entrySet()) {
+            GameProfile profile = entry.getKey();
+            Optional<Boolean> keepInventory = entry.getValue();
+
+            var jsonObject = new JsonObject();
+            if (profile != null) {
+                jsonObject.addProperty("uuid",
+                        profile.getId() == null ? "" : profile.getId().toString());
+                jsonObject.addProperty("name", profile.getName());
+                jsonObject.addProperty("keepInventory", keepInventory.orElse(null));
+            }
+            jsonArray.add(jsonObject);
+        }
+        return jsonArray;
     }
 
     /**
      * Clears this list and fills it with the entries in <code>entries</code>.
      * 
-     * @param entries A JSON array of JSON objects, each representing a <code>KeepInvEntry</code>.
-     * @see KeepInvEntry
+     * @param entries A JSON array of objects representing players and their preferences.
      */
     public void loadFromJsonArray(JsonArray entries) {
         map.clear();
-        for (JsonElement playerJsonElement : entries) {
-            if (!playerJsonElement.isJsonObject()) {
+        for (JsonElement element : entries) {
+            if (!element.isJsonObject()) {
                 continue;
             }
-            var playerJsonObject = playerJsonElement.getAsJsonObject();
-            var keepInvListEntry = new KeepInvEntry(playerJsonObject);
-            if (keepInvListEntry.getProfile() != null) {
-                map.put(keepInvListEntry.getProfile().toString(), keepInvListEntry);
+            var playerJsonObject = element.getAsJsonObject();
+            var profile = gameProfileFromJson(playerJsonObject);
+            if (profile != null) {
+                map.put(profile, keepInventoryFromJson(playerJsonObject));
             }
         }
+    }
+
+    /**
+     * Attempts to create a <code>GameProfile</code> from a <code>JsonObject</code>.
+     * 
+     * @param json An object with the properties "uuid" and "name".
+     * @return The created profile, or <code>null</code> if the info in <code>json</code> is
+     *         invalid.
+     */
+    // This is copied from WhitelistEntry and OperatorEntry
+    @Nullable
+    private static GameProfile gameProfileFromJson(JsonObject json) {
+        UUID uUID;
+        if (!json.has("uuid") || !json.has("name")) {
+            return null;
+        }
+        String string = json.get("uuid").getAsString();
+        try {
+            uUID = UUID.fromString(string);
+        } catch (Throwable throwable) {
+            return null;
+        }
+        return new GameProfile(uUID, json.get("name").getAsString());
+    }
+
+    /**
+     * Attempts to get the keep inventory preference from a <code>JsonObject</code>.
+     * 
+     * @param json An object with the property "keepInventory".
+     * @return The created optional, or <code>null</code> if the info in <code>json</code> is
+     *         invalid.
+     */
+    private static Optional<Boolean> keepInventoryFromJson(JsonObject json) {
+        if (json.has("keepInventory")) {
+            return Optional.of(json.get("keepInventory").getAsBoolean());
+        }
+        return Optional.empty();
     }
 }
