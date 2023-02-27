@@ -167,7 +167,7 @@ public class Config {
         enabled = JsonHelper.getBoolean(configJson, "enabled", false);
         userPermissionLevel = JsonHelper.getInt(configJson, "userPermissionLevel", 0);
         opPermissionLevel = JsonHelper.getInt(configJson, "opPermissionLevel", 3);
-        if (JsonHelper.hasArray(configJson, "profiles")) {
+        if (JsonHelper.hasArray(configJson, "players")) {
             keepInvList.loadFromJsonArray(configJson.get("players").getAsJsonArray());
         }
     }
